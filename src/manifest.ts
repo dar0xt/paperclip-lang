@@ -1,7 +1,7 @@
 import type { PaperclipPluginManifestV1 } from "@paperclipai/plugin-sdk";
 
 const PLUGIN_ID = "paperclip.lang";
-const PLUGIN_VERSION = "1.0.2";
+const PLUGIN_VERSION = "1.0.5";
 
 const manifest: PaperclipPluginManifestV1 = {
   id: PLUGIN_ID,
@@ -9,7 +9,7 @@ const manifest: PaperclipPluginManifestV1 = {
   version: PLUGIN_VERSION,
   displayName: "Language Pack",
   description:
-    "Multi-language UI support for Paperclip. Switch the interface language without modifying the host application. Currently includes Simplified Chinese (zh-CN).",
+    "Multi-language UI support for Paperclip. Switch the interface language without modifying the host application. Includes Chinese (Simplified), Japanese, Korean, German, and French.",
   author: "hinet <63603636@qq.com>",
   categories: ["ui"],
   capabilities: ["ui.action.register", "instance.settings.register"],

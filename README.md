@@ -40,24 +40,42 @@ paperclip-lang
 
 4. 点击 **Install**，等待安装完成
 
-### 方式二：从源码构建
+### 方式二：从独立源码目录构建并安装（无需发布 npm）
 
-**前置要求：** Node.js 18+、pnpm、Paperclip 源码仓库
+前置要求：Git、Node.js 18+、npm，以及 Paperclip 实例管理员权限。
+以下命令在 **Paperclip 服务器** 上运行。将仓库 URL 换成自己的 fork 即可使用自己的修改：
 
 ```bash
-# 将本项目放入 Paperclip 的 packages/plugins/ 目录
-cd /path/to/paperclip/packages/plugins
-git clone https://github.com/hinet/paperclip-lang.git paperclip-lang
-
-# 回到项目根目录安装依赖
-cd ../..
-pnpm install
-
-# 构建插件
-pnpm --filter paperclip-lang build
+git clone https://github.com/hinet/paperclip-lang.git
+cd paperclip-lang
+npm ci
+npm run build
+pwd
 ```
 
-构建完成后，同样在 **Instance Settings → Plugins → Install Plugin** 中输入包名 `paperclip-lang` 安装（此时 npm 会从本地 node_modules 解析）。
+确认生成 `dist/manifest.js`、`dist/worker.js` 和 `dist/ui/index.js`。
+本地路径必须是 **Paperclip 进程可访问的绝对路径**。Docker 部署时，将构建后的目录挂载到容器，
+并使用容器内的路径，而不是宿主机路径。目录需要在重启、重建容器后仍然存在。
+
+目前普通的 **Install Plugin** 对话框只发送 npm 包名。使用本地目录时，
+在已登录该实例的管理员浏览器中，通过同源 API 注册：
+
+```javascript
+const response = await fetch("/api/plugins/install", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  credentials: "same-origin",
+  body: JSON.stringify({
+    packageName: "/absolute/path/visible/to/paperclip/paperclip-lang",
+    isLocalPath: true,
+  }),
+});
+console.log(response.status, await response.json());
+```
+
+将 `packageName` 替换为实际目录。刷新插件管理页，确认 Language Pack 安装成功并已启用。
+如果实例已经安装该插件，应通过该实例支持的升级流程替换原有安装；不要同时运行两个翻译器。
+托管云实例可能只允许安装应用自带的插件；此流程面向自行托管的实例。
 
 ---
 
@@ -160,11 +178,51 @@ export const zhCN: Record<string, string> = {
 | 限制 | 说明 |
 |------|------|
 | 动态内容轻微闪烁 | 动态渲染的内容（如弹窗、下拉菜单）会先短暂显示英文再替换为译文 |
-| 版本兼容性 | Paperclip 界面更新后，新增文本需手动添加到词典中 |
+| 版本兼容性 | Paperclip 界面更新后，新增文本仍需添加到词典中。本插件不是完整的原生 i18n 替代方案 |
 | 浏览器存储 | 语言偏好存储于 `localStorage`，清除浏览器数据后需重新设置 |
-| 图片/图标文字 | 嵌入图片或 SVG 内的文字无法被替换 |
+| 图片/图标文字 | 图片像素和 SVG 内的文字不会被替换；普通图片的 `alt` 标签可翻译 |
 
 ---
+
+### Japanese maintenance and translation boundaries
+
+The Japanese dictionary was reviewed against Paperclip UI commit
+[`db70c5ac`](https://github.com/paperclipai/paperclip/commit/db70c5acd92f50fa37fb4f0dea3da0e7685089a2).
+This adds current navigation/task, plugin, agent configuration, dashboard, and
+settings labels; it does **not** claim full coverage of every Paperclip screen.
+
+Terminology: legacy `Issues` and current `Tasks` are both **タスク**; board
+approval/ownership refers to the human **管理者**, distinct from a kanban **ボード**.
+Agent heartbeat labels describe execution; interval scheduling is **定期実行**.
+
+The translator preserves text-node identity for React, observes later text and
+attribute updates, and ignores its own writes. It translates `title`, `placeholder`,
+`aria-label`, `aria-description`, `aria-valuetext`, and `alt`; it never changes
+input values, IDs, URLs, or machine-readable attributes. Wrapping whitespace and
+`…`/`...` variations are normalized for lookup. Exact keys take precedence.
+
+Code, preformatted text, textareas' contents, contenteditable regions, SVG/MathML,
+`translate="no"`, `.notranslate`, and Paperclip's `.paperclip-markdown` content are
+excluded. Add `translate="no"` around other user-authored content that could match
+a dictionary entry. Arbitrary titles/names rendered without such a boundary cannot
+be reliably distinguished from UI labels by a DOM overlay.
+
+For variable **numeric** labels, add a whole-label template with one `{count}` in
+both key and value, for example `"{count} tasks": "{count}件のタスク"`.
+Only digits (optionally grouped with commas) match; unmatched sentences, dates,
+free-text variables, and sentences split over sibling nodes are not rewritten.
+There is no remote translation service or network submission of page text.
+
+`npm run preview:test` serves the actual language switcher and settings components
+in a local React fixture. Check Japanese → English → Japanese, status/count
+updates, editable values, hide/show/unmount, and protected Markdown/code. This
+fixture does not validate authentication, host plugin loading, or a production
+Paperclip deployment.
+
+After updating your fork, rebuild and use your Paperclip version's plugin upgrade
+or reload flow to load the new bundles. A browser refresh alone may retain the
+host's cached plugin bundles; keep the package and manifest versions aligned when
+preparing a release.
 
 ## 开发
 
@@ -172,8 +230,15 @@ export const zhCN: Record<string, string> = {
 # 完整构建（tsc 类型检查 + esbuild 打包 worker 和 UI）
 pnpm build
 
-# 类型检查
-pnpm typecheck
+# 类型检查（独立仓库可运行）
+npm run typecheck
+
+# DOM / React 回归测试和词典校验
+npm test
+
+# 本地浏览器测试页（不需要 Paperclip 服务器或登录）
+npm run preview:test
+# 打开 http://127.0.0.1:4178
 
 # 清理构建产物
 pnpm clean

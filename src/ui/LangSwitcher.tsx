@@ -50,7 +50,7 @@ export function LangSwitcher() {
       }}
     >
       {LOCALES.map((locale) => (
-        <option key={locale.code} value={locale.code}>
+        <option key={locale.code} value={locale.code} translate="no">
           {locale.nativeName}
         </option>
       ))}

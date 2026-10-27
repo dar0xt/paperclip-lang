@@ -5,6 +5,7 @@
  * (case-sensitive, trimmed). Values are the Japanese replacements.
  * Use タスク for both legacy Issues and current Tasks; board authority is 管理者.
  * Heartbeat labels describe agent execution; interval scheduling is 定期実行.
+ * A single {count} placeholder opts into whole-label numeric matching.
  */
 export const ja: Record<string, string> = {
 
@@ -696,6 +697,12 @@ export const ja: Record<string, string> = {
   "Select the display language for the Paperclip interface. The page will reload to apply the change.": "Paperclip の表示言語を選択してください。変更を適用するとページが再読み込みされます。",
   "Save & Reload": "保存して再読み込み",
   "Saved — reloading...": "保存しました。再読み込み中...",
+  "English": "英語",
+  "Japanese": "日本語",
+  "Chinese (Simplified)": "中国語（簡体字）",
+  "Korean": "韓国語",
+  "German": "ドイツ語",
+  "French": "フランス語",
   "Experimental": "実験的機能",
   "Loading...": "読み込み中...",
   "Saving...": "保存中...",
@@ -814,6 +821,11 @@ export const ja: Record<string, string> = {
   "Recurring work definitions that materialize into auditable execution tasks.": "繰り返し行う作業を定義し、実行履歴を追跡できるタスクとして作成します。",
   "Define the recurring work first. Default project and agent are optional for draft routines.": "まず繰り返し行う作業を定義してください。下書き段階では、標準のプロジェクトと担当エージェントは未指定でも構いません。",
   "After creation, Paperclip takes you straight to trigger setup. Draft routines stay paused until you add a default agent.": "作成後にトリガーの設定画面へ移動します。標準の担当エージェントを設定するまで、下書きのルーティンは一時停止のままです。",
+  "{count} task": "{count}件のタスク",
+  "{count} tasks": "{count}件のタスク",
+  "+{count} more tasks": "ほか{count}件のタスク",
+  "{count} agent": "{count}個のエージェント",
+  "{count} agents": "{count}個のエージェント",
 
   "Upgrade to Paperclip Runner": "Paperclip Runner に切り替え",
   "The upgrade will verify your computer first. This can take a few minutes.": "切り替える前にコンピューターを確認します。数分かかる場合があります。",

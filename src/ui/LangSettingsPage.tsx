@@ -54,7 +54,7 @@ export function LangSettingsPage(_props: PluginSettingsPageProps) {
               style={{ accentColor: "var(--foreground)" }}
             />
             <span style={{ fontSize: 20 }}>{locale.flag}</span>
-            <span style={{ flex: 1 }}>
+            <span translate="no" style={{ flex: 1 }}>
               <span style={{ fontWeight: 500 }}>{locale.nativeName}</span>
               {locale.nativeName !== locale.englishName && (
                 <span style={{ color: "var(--muted-foreground)", marginLeft: 8, fontSize: 13 }}>
